@@ -1,4 +1,4 @@
-# DataVis — Generic Dataset Visualizer
+# Plottix — Generic Dataset Visualizer
 
 Aplicación web para visualización interactiva de datasets genéricos. Desarrollada con **React** en el frontend y **Python (FastAPI)** en el backend, orquestada con **Docker Compose**, e implementando el **Patrón de Estrategia** tanto para el parseo de ficheros como para la generación de gráficos.
 
