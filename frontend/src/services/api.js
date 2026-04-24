@@ -10,7 +10,13 @@ export async function uploadFile(file) {
   const { data } = await api.post('/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
-  return data // { session_id, columns, rows, dtypes }
+  return data // { session_id, columns, rows, dtypes, missing_info }
+}
+
+export async function handleMissings(session_id, strategies) {
+  // strategies: [{ column, strategy }]
+  const { data } = await api.post('/handle-missings', { session_id, strategies })
+  return data // { rows, missing_info }
 }
 
 export async function getChartTypes() {
@@ -18,13 +24,14 @@ export async function getChartTypes() {
   return data.chart_types // [{ value, label }]
 }
 
-export async function visualize({ session_id, x_column, y_column, chart_type, title }) {
+export async function visualize({ session_id, x_column, y_column, chart_type, title, aggregation }) {
   const { data } = await api.post('/visualize', {
     session_id,
     x_column,
     y_column,
     chart_type,
     title,
+    aggregation: aggregation || 'mean',
   })
-  return data // { chart_type, title, data, x_label, y_label }
+  return data // { chart_type, title, data, x_label, y_label, aggregation }
 }

@@ -14,12 +14,20 @@ class HistogramVisualizer(IVisualizer):
     def label(self) -> str:
         return "Histogram"
 
-    def generate(self, df: pd.DataFrame, x_column: str, y_column: str, title: str = "Chart") -> dict:
-        # For histogram we use y_column as the numeric column to bucket
+    def generate(self, df: pd.DataFrame, x_column: str, y_column: str, title: str = "Chart", aggregation: str = "mean") -> dict:
+        # Histogram uses y_column as the numeric column to bucket; aggregation not applicable
         series = pd.to_numeric(df[y_column], errors="coerce").dropna()
+
+        if len(series) == 0:
+            raise ValueError(
+                f"Column '{y_column}' has no numeric values. "
+                "Histogram requires a numeric column in the Y axis."
+            )
+
         counts, bin_edges = np.histogram(series, bins=20)
         data = [
-            {"x": f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f}", "y": int(counts[i])}
+            # Use ASCII hyphen to avoid encoding issues with em-dash
+            {"x": f"{bin_edges[i]:.2f} - {bin_edges[i+1]:.2f}", "y": int(counts[i])}
             for i in range(len(counts))
         ]
         return {
@@ -28,4 +36,5 @@ class HistogramVisualizer(IVisualizer):
             "data": data,
             "x_label": f"{y_column} (bins)",
             "y_label": "Frequency",
+            "aggregation": "none",
         }

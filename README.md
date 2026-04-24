@@ -25,7 +25,7 @@ Aplicación web para visualización interactiva de datasets genéricos. Desarrol
 ## Arquitectura
 
 ```
-datavis/
+plottix/
 ├── docker-compose.yml
 ├── backend/
 │   ├── main.py                     # FastAPI — endpoints REST

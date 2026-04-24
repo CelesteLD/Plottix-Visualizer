@@ -1,11 +1,38 @@
 import React, { useState } from 'react'
 
-export default function ChartModal({ columns, chartTypes, loading, error, onGenerate, onClose }) {
-  const [config, setConfig] = useState({ x_column: '', y_column: '', chart_type: '' })
-  const set = (key) => (e) => setConfig((prev) => ({ ...prev, [key]: e.target.value }))
-  const ready = config.x_column && config.y_column && config.chart_type
+const AGG_CHART_TYPES = ['bar', 'line']
 
-  // Close on backdrop click
+const AGGREGATIONS = [
+  { value: 'mean',  label: 'Mean (avg)', icon: 'x̄' },
+  { value: 'sum',   label: 'Sum',        icon: 'Σ' },
+  { value: 'count', label: 'Count',      icon: '#' },
+  { value: 'min',   label: 'Minimum',    icon: '↓' },
+  { value: 'max',   label: 'Maximum',    icon: '↑' },
+]
+
+export default function ChartModal({ columns, chartTypes, loading, error, onGenerate, onClose }) {
+  const [config, setConfig] = useState({
+    x_column: '', y_column: '', chart_type: '', aggregation: 'mean', custom_title: '',
+  })
+  const set = (key) => (e) => setConfig((prev) => ({ ...prev, [key]: e.target.value }))
+
+  const isHistogram = config.chart_type === 'histogram'
+  const showAggregation = AGG_CHART_TYPES.includes(config.chart_type)
+
+  // Histogram only needs Y; others need both X and Y
+  const ready = isHistogram
+    ? config.y_column && config.chart_type
+    : config.x_column && config.y_column && config.chart_type
+
+  // When switching to histogram, clear x_column (it's irrelevant)
+  const handleChartTypeChange = (value) => {
+    setConfig((prev) => ({
+      ...prev,
+      chart_type: value,
+      x_column: value === 'histogram' ? '' : prev.x_column,
+    }))
+  }
+
   const onBackdrop = (e) => { if (e.target === e.currentTarget) onClose() }
 
   return (
@@ -17,22 +44,8 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
         </div>
 
         <div className="modal-body">
-          <div className="field">
-            <label>X Axis — horizontal</label>
-            <select value={config.x_column} onChange={set('x_column')}>
-              <option value="">Select column…</option>
-              {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
 
-          <div className="field">
-            <label>Y Axis — vertical</label>
-            <select value={config.y_column} onChange={set('y_column')}>
-              <option value="">Select column…</option>
-              {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-
+          {/* Chart type first so the form adapts before the user picks columns */}
           <div className="field">
             <label>Chart type</label>
             <div className="type-grid">
@@ -40,13 +53,70 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
                 <button
                   key={t.value}
                   className={`type-btn ${config.chart_type === t.value ? 'active' : ''}`}
-                  onClick={() => setConfig((prev) => ({ ...prev, chart_type: t.value }))}
+                  onClick={() => handleChartTypeChange(t.value)}
                 >
                   <span className="type-icon">{ICONS[t.value] || '▣'}</span>
                   <span>{t.label}</span>
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* X axis — hidden for histogram */}
+          {!isHistogram && (
+            <div className="field">
+              <label>X Axis — horizontal</label>
+              <select value={config.x_column} onChange={set('x_column')}>
+                <option value="">Select column…</option>
+                {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Y axis — always shown */}
+          <div className="field">
+            <label>
+              {isHistogram ? 'Column to distribute (numeric)' : 'Y Axis — vertical'}
+            </label>
+            <select value={config.y_column} onChange={set('y_column')}>
+              <option value="">Select column…</option>
+              {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            {isHistogram && (
+              <span className="field-hint">
+                ℹ The histogram shows the distribution of this column's values across 20 bins.
+              </span>
+            )}
+          </div>
+
+          {/* Aggregation — only for bar/line */}
+          {showAggregation && (
+            <div className="field">
+              <label>Aggregation — how to combine Y values per X group</label>
+              <div className="agg-grid">
+                {AGGREGATIONS.map((a) => (
+                  <button
+                    key={a.value}
+                    className={`agg-btn ${config.aggregation === a.value ? 'active' : ''}`}
+                    onClick={() => setConfig((prev) => ({ ...prev, aggregation: a.value }))}
+                  >
+                    <span className="agg-icon">{a.icon}</span>
+                    <span>{a.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="field">
+            <label>Chart title (optional)</label>
+            <input
+              type="text"
+              className="title-input"
+              placeholder={isHistogram ? `Distribution of ${config.y_column || "column"}` : `${config.y_column || "Y"} by ${config.x_column || "X"}`}
+              value={config.custom_title}
+              onChange={set("custom_title")}
+            />
           </div>
 
           {error && <div className="modal-error"><span>⚠</span> {error}</div>}
@@ -81,6 +151,8 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
           border-radius: 14px;
           width: 480px;
           max-width: calc(100vw - 32px);
+          max-height: calc(100vh - 64px);
+          display: flex; flex-direction: column;
           box-shadow: 0 24px 64px rgba(0,0,0,0.5);
           animation: slideUp 0.18s ease;
           overflow: hidden;
@@ -91,6 +163,7 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
           padding: 20px 24px 16px;
           border-bottom: 1px solid var(--border);
           display: flex; align-items: center; justify-content: space-between;
+          flex-shrink: 0;
         }
         .modal-title { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-primary); }
         .modal-close {
@@ -100,7 +173,7 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
         }
         .modal-close:hover { background: var(--bg-elevated); color: var(--text-primary); }
 
-        .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+        .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
 
         .field { display: flex; flex-direction: column; gap: 7px; }
         .field label {
@@ -115,7 +188,21 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238888a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
           background-repeat: no-repeat; background-position: right 10px center; cursor: pointer;
         }
-        .field select:focus { border-color: var(--accent); }
+        .field select:focus { border-color: var(--accent); outline: none; }
+        .title-input {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          border-radius: 8px; color: var(--text-primary);
+          padding: 9px 12px; font-size: 0.88rem; width: 100%;
+          font-family: inherit; transition: border-color 0.15s;
+          box-sizing: border-box;
+        }
+        .title-input:focus { border-color: var(--accent); outline: none; }
+        .title-input::placeholder { color: var(--text-muted); }
+        .field-hint {
+          font-size: 0.76rem; color: var(--text-muted);
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          border-radius: 6px; padding: 7px 10px; line-height: 1.4;
+        }
 
         .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .type-btn {
@@ -133,6 +220,22 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
         }
         .type-icon { font-size: 1.1rem; line-height: 1; }
 
+        .agg-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .agg-btn {
+          background: var(--bg-elevated); border: 1.5px solid var(--border);
+          border-radius: 8px; padding: 8px 6px;
+          display: flex; flex-direction: column; align-items: center; gap: 4px;
+          font-size: 0.75rem; color: var(--text-secondary);
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
+          cursor: pointer; text-align: center;
+        }
+        .agg-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+        .agg-btn.active {
+          border-color: var(--accent); color: var(--accent);
+          background: var(--accent-dim);
+        }
+        .agg-icon { font-size: 1rem; font-weight: 700; line-height: 1; }
+
         .modal-error {
           background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.25);
           border-radius: 8px; padding: 10px 12px;
@@ -143,6 +246,7 @@ export default function ChartModal({ columns, chartTypes, loading, error, onGene
           padding: 16px 24px 20px;
           border-top: 1px solid var(--border);
           display: flex; justify-content: flex-end; gap: 10px;
+          flex-shrink: 0;
         }
         .btn-cancel {
           background: var(--bg-elevated); color: var(--text-secondary);

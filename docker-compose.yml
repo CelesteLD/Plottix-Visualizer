@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    container_name: datavis-backend
+    container_name: plottix-backend
     ports:
       - "8000:8000"
     volumes:
@@ -12,7 +12,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: datavis-frontend
+    container_name: plottix-frontend
     ports:
       - "3000:3000"
     volumes:
