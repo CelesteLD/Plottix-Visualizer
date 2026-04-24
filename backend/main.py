@@ -171,3 +171,105 @@ def visualize(req: VisualizeRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
     return result
+
+# ── Multi-series endpoint ───────────────────────────────────────────────────────
+
+MULTI_ALLOWED_CHARTS = {"bar", "line"}
+
+class VisualizeMultiRequest(BaseModel):
+    session_id: str
+    x_column: str
+    y_columns: list[str]   # 2+ columns
+    chart_type: str        # bar | line
+    title: Optional[str] = "Chart"
+    aggregation: Optional[str] = "mean"
+
+
+@app.post("/visualize-multi")
+def visualize_multi(req: VisualizeMultiRequest):
+    """Generate multi-series chart data (multiple Y columns, same X)."""
+    df = _dataframe_store.get(req.session_id)
+    if df is None:
+        raise HTTPException(status_code=404, detail="Session not found. Please re-upload the file.")
+
+    if req.chart_type not in MULTI_ALLOWED_CHARTS:
+        raise HTTPException(status_code=400, detail=f"Multi-series is only supported for: {MULTI_ALLOWED_CHARTS}.")
+
+    if len(req.y_columns) < 2:
+        raise HTTPException(status_code=400, detail="At least 2 Y columns are required for multi-series.")
+
+    if req.x_column not in df.columns:
+        raise HTTPException(status_code=400, detail=f"X column '{req.x_column}' not found.")
+
+    for col in req.y_columns:
+        if col not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Y column '{col}' not found.")
+
+    aggregation = req.aggregation or "mean"
+    if aggregation not in ALLOWED_AGGREGATIONS:
+        raise HTTPException(status_code=400, detail=f"Unknown aggregation '{aggregation}'.")
+
+    try:
+        # Build a merged dict keyed by X value, one entry per Y column
+        from visualizers.ivisualizer import VALID_AGGS
+        agg = aggregation if aggregation in VALID_AGGS else "mean"
+
+        x_col = req.x_column
+        x_numeric = pd.to_numeric(df[x_col], errors="coerce").notna().mean() > 0.7
+
+        # Gather per-Y series
+        series: dict[str, dict] = {}  # x_val -> {y_col: value}
+
+        for y_col in req.y_columns:
+            subset = df[[x_col, y_col]].copy()
+            y_numeric = pd.to_numeric(subset[y_col], errors="coerce").notna().mean() > 0.7
+
+            if not x_numeric and y_numeric:
+                subset[y_col] = pd.to_numeric(subset[y_col], errors="coerce")
+                grouped = (
+                    subset.groupby(x_col, observed=True)[y_col]
+                    .agg(agg)
+                    .dropna()
+                    .sort_values(ascending=False)
+                    .head(50)
+                )
+                for k, v in grouped.items():
+                    key = str(k)
+                    series.setdefault(key, {"x": key})
+                    series[key][y_col] = round(float(v), 4)
+
+            elif not x_numeric and not y_numeric:
+                counts = subset[x_col].value_counts().head(50)
+                for k, v in counts.items():
+                    key = str(k)
+                    series.setdefault(key, {"x": key})
+                    series[key][y_col] = int(v)
+
+            else:
+                # Both numeric — use mean of Y per unique X value
+                subset[x_col] = pd.to_numeric(subset[x_col], errors="coerce")
+                subset[y_col] = pd.to_numeric(subset[y_col], errors="coerce")
+                grouped = (
+                    subset.groupby(x_col, observed=True)[y_col]
+                    .agg(agg)
+                    .dropna()
+                    .head(50)
+                )
+                for k, v in grouped.items():
+                    key = str(k)
+                    series.setdefault(key, {"x": key})
+                    series[key][y_col] = round(float(v), 4)
+
+        data = list(series.values())
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "chart_type": f"multi_{req.chart_type}",
+        "title": req.title,
+        "data": data,
+        "x_label": x_col,
+        "y_columns": req.y_columns,
+        "aggregation": aggregation,
+    }

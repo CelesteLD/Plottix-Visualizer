@@ -7,6 +7,8 @@ from visualizers.bar_chart import BarChartVisualizer
 from visualizers.line_chart import LineChartVisualizer
 from visualizers.scatter_plot import ScatterPlotVisualizer
 from visualizers.histogram import HistogramVisualizer
+from visualizers.pie_chart import PieChartVisualizer
+from visualizers.boxplot import BoxPlotVisualizer
 
 
 class VisualizerFactory:
@@ -21,6 +23,8 @@ class VisualizerFactory:
             LineChartVisualizer(),
             ScatterPlotVisualizer(),
             HistogramVisualizer(),
+            PieChartVisualizer(),
+            BoxPlotVisualizer(),
         ]:
             cls._registry[viz.chart_type] = viz
 

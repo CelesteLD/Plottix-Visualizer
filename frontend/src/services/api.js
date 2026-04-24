@@ -35,3 +35,15 @@ export async function visualize({ session_id, x_column, y_column, chart_type, ti
   })
   return data // { chart_type, title, data, x_label, y_label, aggregation }
 }
+
+export async function visualizeMulti({ session_id, x_column, y_columns, chart_type, title, aggregation }) {
+  const { data } = await api.post('/visualize-multi', {
+    session_id,
+    x_column,
+    y_columns,
+    chart_type,
+    title,
+    aggregation: aggregation || 'mean',
+  })
+  return data // { chart_type: "multi_bar"|"multi_line", title, data, x_label, y_columns, aggregation }
+}

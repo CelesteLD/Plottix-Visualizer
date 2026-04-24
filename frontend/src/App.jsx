@@ -4,7 +4,7 @@ import DatasetInfo from './components/DatasetInfo'
 import ChartRenderer from './components/ChartRenderer'
 import ChartModal from './components/ChartModal'
 import MissingValuesModal from './components/MissingValuesModal'
-import { uploadFile, handleMissings, getChartTypes, visualize } from './services/api'
+import { uploadFile, handleMissings, getChartTypes, visualize, visualizeMulti } from './services/api'
 
 // Flow: idle → uploaded (missing modal) → ready (can add charts)
 const STEP = { IDLE: 'idle', MISSING: 'missing', READY: 'ready' }
@@ -69,12 +69,35 @@ export default function App() {
   const handleGenerate = async (config) => {
     setModalError(null)
     setModalLoading(true)
+
+    const defaultTitle = config.chart_type === 'histogram'
+      ? `Distribution of ${config.y_column}`
+      : config.use_multi
+        ? `${config.y_columns.join(', ')} by ${config.x_column}`
+        : `${config.y_column} by ${config.x_column}`
+    const title = config.custom_title?.trim() || defaultTitle
+
     try {
-      const result = await visualize({
-        session_id: session.session_id,
-        ...config,
-        title: config.custom_title?.trim() || (config.chart_type === 'histogram' ? `Distribution of ${config.y_column}` : `${config.y_column} by ${config.x_column}`),
-      })
+      let result
+      if (config.use_multi) {
+        result = await visualizeMulti({
+          session_id:  session.session_id,
+          x_column:    config.x_column,
+          y_columns:   config.y_columns,
+          chart_type:  config.chart_type,
+          aggregation: config.aggregation,
+          title,
+        })
+      } else {
+        result = await visualize({
+          session_id:  session.session_id,
+          x_column:    config.x_column,
+          y_column:    config.y_column,
+          chart_type:  config.chart_type,
+          aggregation: config.aggregation,
+          title,
+        })
+      }
       setCharts((prev) => [...prev, { id: Date.now(), ...result }])
       setModalOpen(false)
     } catch (e) {
