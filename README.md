@@ -296,7 +296,12 @@ plottix/
 
 > 📷 *Diagrama de clases UML de la arquitectura ampliada en la Práctica II*
 
----
+### Demo con gráficas II
+
+![Demo](docs/demo2.png)
+
+> 📷 *Varios gráficos generados sobre otro dataset diferente*
+
 
 ---
 

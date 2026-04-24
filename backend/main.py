@@ -10,7 +10,7 @@ import pandas as pd
 from parsers.factory import ParserFactory
 from visualizers.factory import VisualizerFactory
 
-app = FastAPI(title="DataVis API")
+app = FastAPI(title="Plottix API")
 
 app.add_middleware(
     CORSMiddleware,
