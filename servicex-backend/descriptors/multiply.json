@@ -1,0 +1,11 @@
+{
+  "id": "multiply",
+  "name": "Multiplicación",
+  "description": "Multiplica dos números en coma flotante",
+  "binary": "multiply",
+  "category": "Aritmética",
+  "inputs": [
+    { "name": "a", "label": "Factor A", "type": "number", "placeholder": "Ej: 6.0" },
+    { "name": "b", "label": "Factor B", "type": "number", "placeholder": "Ej: 7.0" }
+  ]
+}

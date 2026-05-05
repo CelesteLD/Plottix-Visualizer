@@ -1,0 +1,11 @@
+{
+  "id": "matrix_multiply",
+  "name": "Multiplicación de matrices",
+  "description": "Multiplica dos matrices (A de m×k y B de k×n produce C de m×n)",
+  "binary": "matrix_multiply",
+  "category": "Álgebra lineal",
+  "inputs": [
+    { "name": "a", "label": "Matriz A", "type": "matrix" },
+    { "name": "b", "label": "Matriz B", "type": "matrix" }
+  ]
+}

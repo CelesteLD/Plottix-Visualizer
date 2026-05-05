@@ -1,0 +1,47 @@
+# ── ServiceX Portal — levanta TODOS los servicios juntos ──────────
+#
+#   Portal (SPA unificada)    →  http://localhost:3000
+#   ServiceX Backend          →  http://localhost:5001
+#   Plottix Backend           →  http://localhost:5002
+#
+# Uso:
+#   docker compose up -d --build
+#
+
+services:
+
+  # ── Frontend unificado ───────────────────────────────────────────
+  portal:
+    build:
+      context: ./portal
+      args:
+        REACT_APP_SERVICEX_URL: http://localhost:5001
+        REACT_APP_PLOTTIX_URL:  http://localhost:5002
+    container_name: servicex-portal
+    ports:
+      - "3000:80"
+    depends_on:
+      - servicex-backend
+      - plottix-backend
+    restart: unless-stopped
+
+  # ── ServiceX backend (operaciones + imagen) ───────────────────────
+  servicex-backend:
+    build: ./servicex-backend
+    container_name: servicex-backend
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+
+  # ── Plottix backend (visualización) ──────────────────────────────
+  plottix-backend:
+    build: ./plottix-service/backend
+    container_name: plottix-backend
+    ports:
+      - "5002:5000"
+    volumes:
+      - plottix-outputs:/app/outputs
+    restart: unless-stopped
+
+volumes:
+  plottix-outputs:

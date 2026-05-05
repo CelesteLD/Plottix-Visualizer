@@ -1,0 +1,11 @@
+{
+  "id": "matrix_add",
+  "name": "Suma de matrices",
+  "description": "Suma dos matrices del mismo tamaño elemento a elemento",
+  "binary": "matrix_add",
+  "category": "Álgebra lineal",
+  "inputs": [
+    { "name": "a", "label": "Matriz A", "type": "matrix" },
+    { "name": "b", "label": "Matriz B", "type": "matrix" }
+  ]
+}

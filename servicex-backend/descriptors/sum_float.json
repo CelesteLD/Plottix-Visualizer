@@ -1,0 +1,21 @@
+{
+  "id": "sum_float",
+  "name": "Suma de decimales",
+  "description": "Suma dos números en coma flotante con precisión de 6 decimales",
+  "binary": "sum_float",
+  "category": "Aritmética",
+  "inputs": [
+    {
+      "name": "a",
+      "label": "Número A",
+      "type": "number",
+      "placeholder": "Ej: 3.14"
+    },
+    {
+      "name": "b",
+      "label": "Número B",
+      "type": "number",
+      "placeholder": "Ej: 2.71"
+    }
+  ]
+}

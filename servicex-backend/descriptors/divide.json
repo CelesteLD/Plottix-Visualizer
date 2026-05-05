@@ -1,0 +1,11 @@
+{
+  "id": "divide",
+  "name": "División",
+  "description": "Divide dos números en coma flotante con precisión de 6 decimales",
+  "binary": "divide",
+  "category": "Aritmética",
+  "inputs": [
+    { "name": "a", "label": "Dividendo", "type": "number", "placeholder": "Ej: 22.0" },
+    { "name": "b", "label": "Divisor",   "type": "number", "placeholder": "Ej: 7.0" }
+  ]
+}

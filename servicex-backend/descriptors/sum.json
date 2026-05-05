@@ -1,0 +1,21 @@
+{
+  "id": "sum",
+  "name": "Suma",
+  "description": "Suma dos números y devuelve el resultado",
+  "binary": "sum",
+  "category": "Aritmética",
+  "inputs": [
+    {
+      "name": "a",
+      "label": "Número A",
+      "type": "number",
+      "placeholder": "Ej: 42"
+    },
+    {
+      "name": "b",
+      "label": "Número B",
+      "type": "number",
+      "placeholder": "Ej: 58"
+    }
+  ]
+}

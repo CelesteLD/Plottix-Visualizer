@@ -1,0 +1,11 @@
+{
+  "id": "quotient",
+  "name": "Cociente entero",
+  "description": "Calcula el cociente y el resto de la división entera entre dos números",
+  "binary": "quotient",
+  "category": "Aritmética",
+  "inputs": [
+    { "name": "a", "label": "Dividendo", "type": "number", "placeholder": "Ej: 17" },
+    { "name": "b", "label": "Divisor",   "type": "number", "placeholder": "Ej: 5" }
+  ]
+}

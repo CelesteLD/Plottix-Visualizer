@@ -1,0 +1,24 @@
+{
+  "id": "plottix",
+  "name": "Plottix Visualizer",
+  "description": "Dashboard interactivo de visualización de datos. Sube un dataset CSV/Excel y explora patrones mediante múltiples gráficos generados en el servidor.",
+  "category": "Visualización",
+  "version": "2.0",
+  "service_type": "dashboard",
+  "inputs": [
+    {
+      "name": "dataset",
+      "label": "Dataset",
+      "type": "file",
+      "accept": ".csv,.tsv,.txt,.xlsx,.xls",
+      "description": "Fichero CSV, TSV o Excel con los datos a visualizar"
+    }
+  ],
+  "endpoints": {
+    "upload":      "POST /api/upload",
+    "missings":    "POST /api/handle-missings",
+    "chart_types": "GET  /api/chart-types",
+    "visualize":   "POST /api/visualize",
+    "result":      "GET  /api/result/<job_id>"
+  }
+}

@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  plottix-backend:
+    build: ./backend
+    container_name: plottix-service-backend
+    ports:
+      - "5002:5000"
+    volumes:
+      - plottix-outputs:/app/outputs
+    restart: unless-stopped
+
+  plottix-frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: http://localhost:5002
+    container_name: plottix-service-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - plottix-backend
+    restart: unless-stopped
+
+volumes:
+  plottix-outputs:

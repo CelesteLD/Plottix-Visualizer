@@ -1,0 +1,11 @@
+{
+  "id": "subtract_float",
+  "name": "Resta de decimales",
+  "description": "Resta dos números en coma flotante con precisión de 6 decimales",
+  "binary": "subtract_float",
+  "category": "Aritmética",
+  "inputs": [
+    { "name": "a", "label": "Número A", "type": "number", "placeholder": "Ej: 10.5" },
+    { "name": "b", "label": "Número B", "type": "number", "placeholder": "Ej: 3.2" }
+  ]
+}
