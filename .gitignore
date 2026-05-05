@@ -1,0 +1,6 @@
+node_modules/
+__pycache__/
+*.pyc
+plottix-service/backend/outputs/
+servicex-backend/uploads/
+servicex-backend/outputs/
