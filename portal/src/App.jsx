@@ -55,7 +55,7 @@ export default function App() {
           >
             {theme === 'dark' ? '☀ Claro' : '☾ Oscuro'}
           </button>
-          <span className="ph-pill">lab-06 · ULL</span>
+          <span className="ph-pill">VDD-III · ULL</span>
         </div>
       </header>
 

@@ -111,7 +111,7 @@ export default function App() {
         </div>
         <div className="header-divider" />
         <span className="header-subtitle">Visualización de datos · Servicio cloud</span>
-        <span className="header-pill">lab-06 · ULL</span>
+        <span className="header-pill">VDD-III · ULL</span>
       </header>
 
       <main className="app-main">
