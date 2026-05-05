@@ -89,6 +89,11 @@ Plottix-Visualizer/
 
 ---
 
+## Arquitectura de la aplicación 
+![Empty state](docs/architecture.png)
+
+> 📷 *Diagrama de arquitectura de ServiceX + Plottix*
+
 ## Requisitos previos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y en ejecución
