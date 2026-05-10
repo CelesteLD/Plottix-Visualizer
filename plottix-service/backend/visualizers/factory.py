@@ -34,19 +34,19 @@ def _get_world():
     return _WORLD_GDF
 
 # ── Design tokens (ServiceX dark palette) ────────────────────────────────────
-BG_FIGURE   = "#080b10"
-BG_AXES     = "#0e1219"
-COLOR_GRID  = "#1e2535"
-COLOR_TEXT  = "#e2e8f4"
-COLOR_MUTED = "#7a869e"
+BG_FIGURE   = "#FFFFFF"
+BG_AXES     = "#F7F6F2"
+COLOR_GRID  = "#E2E0D8"
+COLOR_TEXT  = "#1A1A2E"
+COLOR_MUTED = "#6B7280"
 COLOR_ACCENT  = "#5b6af7"
 COLOR_ACCENT2 = "#00d4aa"
 COLOR_WARN    = "#f59e0b"
 COLOR_ERROR   = "#f43f5e"
 
 SERIES_PALETTE = [
-    "#5b6af7", "#00d4aa", "#f59e0b", "#f43f5e",
-    "#a78bfa", "#34d399", "#fb923c", "#60a5fa",
+    "#5B4FE8", "#059669", "#D97706", "#DC2626",
+    "#7C3AED", "#0891B2", "#EA580C", "#0284C7",
 ]
 
 def _apply_theme(fig, ax):
@@ -271,12 +271,15 @@ class ChartFactory:
             data_list,
             patch_artist=True,
             medianprops={"color": COLOR_ACCENT2, "linewidth": 2},
-            boxprops={"facecolor": f"{COLOR_ACCENT}22", "edgecolor": COLOR_ACCENT},
+            boxprops={"facecolor": COLOR_ACCENT, "edgecolor": COLOR_ACCENT, "alpha": 0.15},
             whiskerprops={"color": COLOR_MUTED},
             capprops={"color": COLOR_MUTED},
             flierprops={"marker": "o", "markerfacecolor": COLOR_ERROR,
                         "markersize": 3, "alpha": 0.6, "markeredgewidth": 0},
         )
+        # Set box alpha separately — matplotlib does not support 8-digit hex colors
+        for patch in bp["boxes"]:
+            patch.set_alpha(0.18)
         ax.set_xticks(range(1, len(groups) + 1))
         ax.set_xticklabels(groups, rotation=35, ha="right", fontsize=7.5)
         ax.set_xlabel(x_col, fontsize=9)

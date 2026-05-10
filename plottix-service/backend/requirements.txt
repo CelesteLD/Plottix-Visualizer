@@ -13,3 +13,7 @@ shapely==2.0.4
 pyogrio==0.7.2
 folium==0.17.0
 gevent==24.2.1
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+scikit-learn==1.4.2

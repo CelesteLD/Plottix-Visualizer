@@ -13,7 +13,6 @@ export default function ChartCard({ chart, onRemove }) {
         <span className="cc-title">{chart.title}</span>
         <div className="cc-actions">
           {isInteractive ? (
-            /* Interactive maps: open in new tab for full-screen experience */
             <a
               href={chart.html_url}
               target="_blank"
@@ -24,7 +23,6 @@ export default function ChartCard({ chart, onRemove }) {
               ⤢ Ampliar
             </a>
           ) : (
-            /* Static charts: download PNG */
             <a
               href={chart.img_url}
               download={`${chart.title.replace(/\s+/g, '_')}.png`}
@@ -52,7 +50,6 @@ export default function ChartCard({ chart, onRemove }) {
         )}
 
         {isInteractive ? (
-          /* Folium map rendered in iframe */
           <iframe
             src={chart.html_url}
             title={chart.title}
@@ -63,7 +60,6 @@ export default function ChartCard({ chart, onRemove }) {
             sandbox="allow-scripts allow-same-origin"
           />
         ) : (
-          /* Static PNG image */
           <img
             src={chart.img_url}
             alt={chart.title}
@@ -78,56 +74,54 @@ export default function ChartCard({ chart, onRemove }) {
       <style>{`
         .chart-card-sx {
           background: var(--surface);
-          border: 1px solid var(--border);
+          border: 0.5px solid var(--border);
           border-radius: 12px;
           overflow: hidden;
           display: flex; flex-direction: column;
           transition: border-color 0.15s;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
         .chart-card-sx:hover { border-color: var(--border2); }
 
         .cc-header {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 0.7rem 1rem;
-          border-bottom: 1px solid var(--border);
+          padding: 10px 14px;
+          border-bottom: 0.5px solid var(--border);
           background: var(--surface2);
           flex-shrink: 0;
         }
         .cc-title {
-          font-family: 'Space Mono', monospace; font-size: 0.75rem;
+          font-family: var(--font-mono); font-size: 12px;
           color: var(--text-muted); flex: 1;
           overflow-wrap: break-word; word-break: break-word;
-          padding-right: 0.75rem;
+          padding-right: 10px;
         }
-        .cc-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+        .cc-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
         .cc-btn {
-          font-family: 'Space Mono', monospace; font-size: 0.65rem;
-          font-weight: 700; padding: 0.28rem 0.65rem;
-          border-radius: 5px; cursor: pointer;
-          transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+          font-family: var(--font-mono); font-size: 11px;
+          font-weight: 500; padding: 4px 10px;
+          border-radius: 6px; cursor: pointer;
+          transition: background 0.15s, color 0.15s;
           text-decoration: none; line-height: 1;
           display: flex; align-items: center;
         }
         .cc-btn-dl {
-          background: rgba(0,212,170,0.08); color: var(--accent2);
-          border: 1px solid rgba(0,212,170,0.25);
+          background: var(--accent2-light); color: var(--accent2);
+          border: 0.5px solid rgba(5,150,105,0.3);
         }
-        .cc-btn-dl:hover {
-          background: rgba(0,212,170,0.16);
-          box-shadow: 0 0 10px rgba(0,212,170,0.2);
-        }
+        .cc-btn-dl:hover { background: rgba(5,150,105,0.2); }
         .cc-btn-rm {
           background: none; color: var(--text-dim);
-          border: 1px solid var(--border2); font-size: 0.7rem;
+          border: 0.5px solid var(--border2); font-size: 12px;
         }
         .cc-btn-rm:hover {
-          background: rgba(244,63,94,0.08); color: var(--error);
-          border-color: rgba(244,63,94,0.3);
+          background: var(--error-light); color: var(--error);
+          border-color: var(--error-border);
         }
 
         .cc-img-wrap {
-          flex: 1; background: #080b10;
+          flex: 1; background: var(--surface);
           display: flex; align-items: center; justify-content: center;
           min-height: 240px; position: relative;
         }
@@ -152,7 +146,7 @@ export default function ChartCard({ chart, onRemove }) {
           100% { background-position: -200% 0 }
         }
         .cc-error {
-          font-family: 'Space Mono', monospace; font-size: 0.78rem;
+          font-family: var(--font-mono); font-size: 12px;
           color: var(--error); padding: 2rem; text-align: center;
         }
       `}</style>

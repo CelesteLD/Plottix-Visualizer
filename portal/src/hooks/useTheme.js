@@ -1,23 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 
-const STORAGE_KEY = 'sx-theme'
-
+// Theme is permanently light — no toggle needed.
 export default function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) || 'dark'
-  })
-
   useEffect(() => {
-    const body = document.body
-    if (theme === 'light') {
-      body.classList.add('theme-light')
-    } else {
-      body.classList.remove('theme-light')
-    }
-    localStorage.setItem(STORAGE_KEY, theme)
-  }, [theme])
+    document.body.classList.remove('theme-light')
+    // Light is now the base theme via CSS variables; no class needed.
+  }, [])
 
-  const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
-
-  return { theme, toggle }
+  return { theme: 'light', toggle: () => {} }
 }

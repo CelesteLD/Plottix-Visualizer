@@ -1,18 +1,20 @@
-// ── Plottix-Service design tokens (ServiceX dark palette) ──────────────────
-export const BG          = '#080b10'
-export const SURFACE     = '#0e1219'
-export const SURFACE2    = '#131820'
-export const BORDER      = '#1e2535'
-export const BORDER2     = '#2a3347'
-export const ACCENT      = '#5b6af7'
-export const ACCENT_GLOW = 'rgba(91,106,247,0.25)'
-export const ACCENT2     = '#00d4aa'
-export const ACCENT2_GLOW= 'rgba(0,212,170,0.2)'
-export const WARN        = '#f59e0b'
-export const ERROR       = '#f43f5e'
-export const TEXT        = '#e2e8f4'
-export const TEXT_MUTED  = '#7a869e'
-export const TEXT_DIM    = '#3d4a60'
+// ── Plottix design tokens — light theme ────────────────────────────
+export const BG           = '#F7F6F2'
+export const SURFACE      = '#FFFFFF'
+export const SURFACE2     = '#F2F1ED'
+export const BORDER       = '#E2E0D8'
+export const BORDER2      = '#D0CEC6'
+export const ACCENT       = '#5B4FE8'
+export const ACCENT_LIGHT = '#EEEAFF'
+export const ACCENT_MID   = '#A5B4FC'
+export const ACCENT2      = '#059669'
+export const ACCENT2_LIGHT= '#E8F8F2'
+export const WARN         = '#D97706'
+export const ERROR        = '#DC2626'
+export const TEXT         = '#1A1A2E'
+export const TEXT_MUTED   = '#6B7280'
+export const TEXT_DIM     = '#9CA3AF'
+export const FONT_MONO    = "'JetBrains Mono', monospace"
 
 export const CHART_AXIS_RULES = {
   bar:         { x: 'categorical', y: 'numeric'  },

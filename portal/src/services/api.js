@@ -63,3 +63,43 @@ export async function plottixVisualize(params) {
 }
 export function plottixResultUrl(jobId)     { return `${PX}/api/result/${jobId}` }
 export function plottixResultHtmlUrl(jobId) { return `${PX}/api/result-html/${jobId}` }
+
+// ── Plottix ML ────────────────────────────────────────────────────
+// Añade estas funciones al final de portal/src/services/api.js
+
+export async function plottixGetMLModels() {
+  const res  = await fetch(`${PX}/api/ml/models`)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Error cargando modelos ML')
+  return data // { classification: [...], regression: [...], clustering: [...] }
+}
+
+export async function plottixMLElbow({ session_id, features, max_k = 10 }) {
+  const res  = await fetch(`${PX}/api/ml/elbow`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id, features, max_k }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Error calculando codo')
+  return data // { elbow: [{k, inertia}], features }
+}
+
+export async function plottixMLTrain({
+  session_id, model_types, target, features,
+  test_size = 0.2, n_estimators = 100, n_neighbors = 5,
+  alpha = 1.0, n_clusters = 3, eps = 0.5, min_samples = 5,
+}) {
+  const res  = await fetch(`${PX}/api/ml/train`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session_id, model_types, target, features,
+      test_size, n_estimators, n_neighbors,
+      alpha, n_clusters, eps, min_samples,
+    }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Error entrenando modelos')
+  return data // { results: [...], errors: [...] }
+}

@@ -21,7 +21,7 @@ BASE_DIR    = os.path.dirname(__file__)
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
-# In-memory session store (replace with Redis in production)
+# In-memory session store
 _sessions: dict[str, pd.DataFrame] = {}
 
 # ── Descriptor ────────────────────────────────────────────────────────────────
@@ -45,22 +45,19 @@ def _missing_summary(df: pd.DataFrame) -> list[dict]:
     ]
 
 def _classify_columns(df: pd.DataFrame) -> dict:
-    """Return dtypes dict classifying each column as numeric or categorical."""
     dtypes = {}
     for col in df.columns:
         if pd.api.types.is_numeric_dtype(df[col]):
             dtypes[col] = str(df[col].dtype)
         else:
-            # Try soft-numeric detection
             ratio = pd.to_numeric(df[col], errors="coerce").notna().mean()
             dtypes[col] = str(df[col].dtype) if ratio <= 0.7 else "float64"
     return dtypes
 
-# ── ServiceX compatible catalogue ────────────────────────────────────────────
+# ── ServiceX compatible catalogue ─────────────────────────────────────────────
 
 @app.route("/api/operations", methods=["GET"])
 def get_operations():
-    """ServiceX-compatible endpoint: returns this service's descriptor."""
     return jsonify({"operations": [_DESCRIPTOR]})
 
 
@@ -86,8 +83,8 @@ def get_chart_types():
 def upload():
     if "file" not in request.files:
         return jsonify({"error": "No se recibió ningún fichero"}), 400
-    f    = request.files["file"]
-    ext  = (f.filename or "").rsplit(".", 1)[-1].lower()
+    f   = request.files["file"]
+    ext = (f.filename or "").rsplit(".", 1)[-1].lower()
 
     try:
         if ext in ("csv", "txt", "tsv"):
@@ -181,7 +178,6 @@ def visualize():
 
     job_id = uuid.uuid4().hex
 
-    # Interactive chart (Folium HTML) — save as .html
     if isinstance(result, dict) and result.get("is_interactive"):
         out_path = os.path.join(OUTPUTS_DIR, f"{job_id}.html")
         with open(out_path, "w", encoding="utf-8") as fout:
@@ -193,7 +189,6 @@ def visualize():
             "is_interactive": True,
         })
 
-    # Static chart (PNG)
     out_path = os.path.join(OUTPUTS_DIR, f"{job_id}.png")
     with open(out_path, "wb") as fout:
         fout.write(result.getvalue())
@@ -230,9 +225,91 @@ def get_result_html(job_id):
     return send_file(path, mimetype="text/html")
 
 
+# ── Health ────────────────────────────────────────────────────────────────────
+
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "service": "plottix"})
+
+
+# ── ML endpoints ──────────────────────────────────────────────────────────────
+
+@app.route("/api/ml/models", methods=["GET"])
+def get_ml_models():
+    """Return all available ML models grouped by category."""
+    from ml.factory import MLModelFactory
+    models = MLModelFactory.available()
+    grouped = {"classification": [], "regression": [], "clustering": []}
+    for m in models:
+        grouped[m["category"]].append({"value": m["value"], "label": m["label"]})
+    return jsonify(grouped)
+
+
+@app.route("/api/ml/elbow", methods=["POST"])
+def ml_elbow():
+    """Compute K-Means elbow curve (inertia vs k)."""
+    body       = request.get_json()
+    session_id = body.get("session_id")
+    df         = _sessions.get(session_id)
+    if df is None:
+        return jsonify({"error": "Sesión no encontrada"}), 404
+
+    features = body.get("features", [])
+    max_k    = int(body.get("max_k", 10))
+
+    for col in features:
+        if col not in df.columns:
+            return jsonify({"error": f"Columna '{col}' no encontrada"}), 400
+
+    try:
+        from ml.clustering import KMeansModel
+        model  = KMeansModel()
+        result = model.elbow(df, {"features": features, "max_k": max_k})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/ml/train", methods=["POST"])
+def ml_train():
+    """Train one or more ML models and return all results."""
+    body       = request.get_json()
+    session_id = body.get("session_id")
+    df         = _sessions.get(session_id)
+    if df is None:
+        return jsonify({"error": "Sesión no encontrada"}), 404
+
+    model_types = body.get("model_types", [])
+    if not model_types:
+        return jsonify({"error": "Selecciona al menos un modelo"}), 400
+
+    config = {
+        "features":     body.get("features", []),
+        "target":       body.get("target"),
+        "test_size":    float(body.get("test_size", 0.2)),
+        "n_estimators": int(body.get("n_estimators", 100)),
+        "n_neighbors":  int(body.get("n_neighbors", 5)),
+        "alpha":        float(body.get("alpha", 1.0)),
+        "n_clusters":   int(body.get("n_clusters", 3)),
+        "eps":          float(body.get("eps", 0.5)),
+        "min_samples":  int(body.get("min_samples", 5)),
+    }
+
+    from ml.factory import MLModelFactory
+
+    results, errors = [], []
+    for mt in model_types:
+        try:
+            model  = MLModelFactory.get_model(mt)
+            result = model.train(df, config)
+            results.append(result)
+        except ValueError as e:
+            errors.append({"model_type": mt, "error": str(e)})
+        except Exception as e:
+            errors.append({"model_type": mt, "error": f"Error inesperado: {e}"})
+
+    return jsonify({"results": results, "errors": errors})
 
 
 if __name__ == "__main__":
