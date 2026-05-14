@@ -39,7 +39,7 @@ export default function App() {
             </span>
           </>
         )}
-        <span className="ph-pill" style={{ marginLeft: 'auto' }}>VDD-III · ULL</span>
+        <span className="ph-pill" style={{ marginLeft: 'auto' }}>PROYECTO FINAL · ADM </span>
       </header>
 
       <div className="portal-body">

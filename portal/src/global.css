@@ -1,30 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg:           #F7F6F2;
+  /* ── Plottix palette ── */
+  --p1:           #72BF78;
+  --p2:           #A0D683;
+  --p3:           #D3EE98;
+  --p4:           #FEFF9F;
+
+  --bg:           #F4FAF0;
   --surface:      #FFFFFF;
-  --surface2:     #F2F1ED;
-  --border:       #E2E0D8;
-  --border2:      #D0CEC6;
-  --accent:       #5B4FE8;
-  --accent-light: #EEEAFF;
-  --accent-mid:   #A5B4FC;
-  --accent2:      #059669;
-  --accent2-light:#E8F8F2;
+  --surface2:     #EEF7E4;
+  --border:       #C8E6A0;
+  --border2:      #A0D683;
+
+  --accent:       #72BF78;
+  --accent-light: #EEF7E4;
+  --accent-mid:   #A0D683;
+  --accent2:      #3A8C42;
+  --accent2-light:#D3EE98;
+
   --warn:         #D97706;
   --warn-light:   #FFFBEB;
   --warn-border:  #FCD34D;
   --error:        #DC2626;
   --error-light:  #FEF2F2;
   --error-border: #FECACA;
-  --text:         #1A1A2E;
-  --text-muted:   #6B7280;
-  --text-dim:     #9CA3AF;
+
+  --text:         #1A2E14;
+  --text-muted:   #3A5A2A;
+  --text-dim:     #6B9A55;
+
   --radius:       9px;
   --radius-lg:    14px;
   --radius-xl:    18px;
-  --shadow-sm:    0 1px 3px rgba(0,0,0,0.07);
-  --shadow-md:    0 4px 12px rgba(0,0,0,0.08);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:    0 4px 12px rgba(0,0,0,0.07);
   --font:         'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 }
@@ -49,7 +59,7 @@ body::before {
     linear-gradient(var(--border) 1px, transparent 1px),
     linear-gradient(90deg, var(--border) 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.45;
+  opacity: 0.3;
   pointer-events: none;
   z-index: 0;
 }
@@ -69,7 +79,7 @@ body::before {
 .ph-brand { display: flex; align-items: center; gap: 0.6rem; margin-right: 1.5rem; }
 .ph-logo {
   width: 32px; height: 32px;
-  background: var(--accent);
+  background: var(--p1);
   border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; color: #fff;
@@ -143,13 +153,13 @@ body::before {
 /* ── Buttons ───────────────────────────────────────────────────────── */
 .register-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  background: var(--accent); color: #fff; border: none;
+  background: var(--p1); color: #fff; border: none;
   border-radius: var(--radius); padding: 8px 16px;
   font-family: var(--font); font-size: 13px; font-weight: 500;
   cursor: pointer; width: 100%;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
-.register-btn:hover { background: #4A3FD4; box-shadow: 0 4px 14px rgba(91,79,232,0.3); transform: translateY(-1px); }
+.register-btn:hover { background: #5AAE60; box-shadow: 0 4px 14px rgba(114,191,120,0.35); transform: translateY(-1px); }
 .register-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-ghost {

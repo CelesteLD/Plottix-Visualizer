@@ -3,12 +3,49 @@
 #   Portal (SPA unificada)    →  http://localhost:3000
 #   ServiceX Backend          →  http://localhost:5001
 #   Plottix Backend           →  http://localhost:5002
+#   Ollama (LLM)              →  http://localhost:11434  (interno)
 #
 # Uso:
 #   docker compose up -d --build
 #
+# Los modelos LLM se descargan automáticamente la primera vez (~4 GB en total).
+# El volumen `ollama_data` los persiste para arranques posteriores.
+#
 
 services:
+
+  # ── Ollama (LLM service) ─────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: plottix-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  # ── Ollama model init (runs once, pulls models) ──────────────────
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: plottix-ollama-init
+    volumes:
+      - ollama_data:/root/.ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        OLLAMA_HOST=http://ollama:11434 ollama pull moondream &&
+        OLLAMA_HOST=http://ollama:11434 ollama pull phi3:mini &&
+        echo 'Models ready.'
+      "
+    restart: "no"
 
   # ── Frontend unificado ───────────────────────────────────────────
   portal:
@@ -33,7 +70,7 @@ services:
       - "5001:5000"
     restart: unless-stopped
 
-  # ── Plottix backend (visualización) ──────────────────────────────
+  # ── Plottix backend (visualización + LLM) ────────────────────────
   plottix-backend:
     build: ./plottix-service/backend
     container_name: plottix-backend
@@ -41,7 +78,16 @@ services:
       - "5002:5000"
     volumes:
       - plottix-outputs:/app/outputs
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - LLM_TEXT_MODEL=phi3:mini
+      - LLM_VISION_MODEL=moondream
+      - LLM_TIMEOUT=120
+    depends_on:
+      ollama:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   plottix-outputs:
+  ollama_data:

@@ -1,9 +1,9 @@
 import React from 'react'
 
-const CATEGORY_META = {
-  classification: { label: 'Clasificación', color: '#5B4FE8', bg: '#EEEAFF' },
-  regression:     { label: 'Regresión',     color: '#059669', bg: '#E8F8F2' },
-  clustering:     { label: 'Clustering',    color: '#D97706', bg: '#FFFBEB' },
+const CAT = {
+  classification: { label: 'Clasificación', color: '#72BF78' },
+  regression:     { label: 'Regresión',     color: '#5DCAA5' },
+  clustering:     { label: 'Clustering',    color: '#D97706' },
 }
 
 export default function MLModelSelector({ availableModels, selectedModels, onChange }) {
@@ -13,57 +13,50 @@ export default function MLModelSelector({ availableModels, selectedModels, onCha
       : [...selectedModels, value])
 
   return (
-    <div className="mls-wrap">
+    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
       {Object.entries(availableModels).map(([category, models]) => {
-        const meta = CATEGORY_META[category] || { label: category, color: '#888', bg: '#F7F6F2' }
+        const meta = CAT[category] || { label: category, color: '#888' }
         return (
-          <div key={category} className="mls-group">
-            <div className="mls-group-header">
-              <span className="mls-group-dot" style={{ background: meta.color }} />
-              <span className="mls-group-label">{meta.label}</span>
+          <div key={category}>
+            <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:5 }}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:meta.color, flexShrink:0 }} />
+              <span style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--text-dim)', fontWeight:500 }}>{meta.label}</span>
             </div>
-            {models.map(m => (
-              <label key={m.value}
-                className={`mls-option ${selectedModels.includes(m.value) ? 'selected' : ''}`}
-                style={selectedModels.includes(m.value) ? { background: meta.bg, borderColor: meta.color } : {}}>
-                <input type="checkbox"
-                  checked={selectedModels.includes(m.value)}
-                  onChange={() => toggle(m.value)} />
-                <span style={selectedModels.includes(m.value) ? { color: meta.color } : {}}>{m.label}</span>
-              </label>
-            ))}
+            <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+              {models.map(m => {
+                const sel = selectedModels.includes(m.value)
+                return (
+                  <div key={m.value}
+                    onClick={() => toggle(m.value)}
+                    style={{
+                      display:'flex', alignItems:'center', gap:7,
+                      padding:'6px 9px', borderRadius:7, cursor:'pointer',
+                      border:`1px solid ${sel ? meta.color : 'var(--border)'}`,
+                      background: sel ? `${meta.color}18` : 'var(--surface)',
+                      fontSize:12, color: sel ? meta.color : 'var(--text-muted)',
+                      fontWeight: sel ? 500 : 400, transition:'all .13s',
+                    }}>
+                    <div style={{
+                      width:9, height:9, borderRadius:'50%', flexShrink:0,
+                      background: sel ? meta.color : 'none',
+                      border: `1.5px solid ${sel ? meta.color : 'var(--border2)'}`,
+                    }} />
+                    {m.label}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )
       })}
-
       {selectedModels.length > 0 && (
-        <div className="mls-count">
+        <div style={{
+          background:'var(--g3)', color:'#1A5014', border:'1px solid var(--border2)',
+          borderRadius:20, fontSize:10, padding:'3px 10px', textAlign:'center', fontWeight:500,
+        }}>
           {selectedModels.length} modelo{selectedModels.length > 1 ? 's' : ''} seleccionado{selectedModels.length > 1 ? 's' : ''}
         </div>
       )}
-
-      <style>{`
-        .mls-wrap { display:flex; flex-direction:column; gap:14px; }
-        .mls-group { display:flex; flex-direction:column; gap:4px; }
-        .mls-group-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-        .mls-group-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-        .mls-group-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-dim); }
-        .mls-option {
-          display:flex; align-items:center; gap:8px;
-          padding:7px 10px; border-radius:8px;
-          border:0.5px solid var(--border); cursor:pointer;
-          font-size:12px; font-weight:500; color:var(--text-muted);
-          transition:all 0.13s; user-select:none; background:var(--surface);
-        }
-        .mls-option:hover { border-color:var(--border2); background:var(--surface2); color:var(--text); }
-        .mls-option input[type="checkbox"] { accent-color:var(--accent); width:13px; height:13px; flex-shrink:0; }
-        .mls-count {
-          font-family:var(--font-mono); font-size:11px; font-weight:500;
-          color:var(--accent); background:var(--accent-light);
-          border:0.5px solid var(--accent-mid);
-          border-radius:20px; padding:4px 12px; text-align:center;
-        }
-      `}</style>
     </div>
   )
 }

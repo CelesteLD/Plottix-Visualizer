@@ -33,24 +33,31 @@ def _get_world():
     _WORLD_GDF["name_lower"] = _WORLD_GDF["name"].str.lower().str.strip()
     return _WORLD_GDF
 
-# ── Design tokens (ServiceX dark palette) ────────────────────────────────────
+# ── Design tokens (Plottix green palette) ────────────────────────────────────
 BG_FIGURE   = "#FFFFFF"
-BG_AXES     = "#F7F6F2"
-COLOR_GRID  = "#E2E0D8"
-COLOR_TEXT  = "#1A1A2E"
-COLOR_MUTED = "#6B7280"
-COLOR_ACCENT  = "#5b6af7"
-COLOR_ACCENT2 = "#00d4aa"
-COLOR_WARN    = "#f59e0b"
-COLOR_ERROR   = "#f43f5e"
+BG_AXES     = "#F2F8ED"
+COLOR_GRID  = "#DFF0D0"
+COLOR_TEXT  = "#0F1A0C"
+COLOR_MUTED = "#5A7A54"
+COLOR_ACCENT  = "#72BF78"
+COLOR_ACCENT2 = "#3A8C42"
+COLOR_WARN    = "#D97706"
+COLOR_ERROR   = "#DC2626"
 
+# Primary series palette — greens + complementary warm tones for contrast
 SERIES_PALETTE = [
-    "#5B4FE8", "#059669", "#D97706", "#DC2626",
-    "#7C3AED", "#0891B2", "#EA580C", "#0284C7",
+    "#72BF78",  # green main
+    "#3A8C42",  # green dark
+    "#A0D683",  # green light
+    "#D97706",  # amber  — contrast
+    "#1D6B56",  # teal dark — contrast
+    "#5DCAA5",  # teal light
+    "#F59E0B",  # amber light
+    "#0F6E56",  # teal deep
 ]
 
 def _apply_theme(fig, ax):
-    """Apply ServiceX dark theme to a figure/axes pair."""
+    """Apply Plottix green theme to a figure/axes pair."""
     fig.patch.set_facecolor(BG_FIGURE)
     ax.set_facecolor(BG_AXES)
     ax.tick_params(colors=COLOR_MUTED, labelsize=8)
@@ -362,8 +369,12 @@ class ChartFactory:
         _apply_theme(fig, ax)
 
         import matplotlib.colors as mcolors
-        # Custom RdBu diverging cmap
-        cmap = plt.cm.RdBu_r
+        # Green-white-amber diverging cmap aligned with Plottix palette
+        cmap = mcolors.LinearSegmentedColormap.from_list(
+            "plottix_div",
+            ["#D97706", "#FFFFFF", "#3A8C42"],
+            N=256
+        )
 
         im = ax.imshow(corr.values, cmap=cmap, vmin=-1, vmax=1, aspect="auto")
         ax.set_xticks(range(n))
@@ -439,11 +450,11 @@ class ChartFactory:
             data=grouped,
             columns=["country", "value"],
             key_on="feature.properties.name",
-            fill_color="YlOrRd",
-            fill_opacity=0.78,
-            line_opacity=0.25,
-            nan_fill_color="#1a2233",
-            nan_fill_opacity=0.4,
+            fill_color="YlGn",
+            fill_opacity=0.82,
+            line_opacity=0.2,
+            nan_fill_color="#D0E8C8",
+            nan_fill_opacity=0.35,
             legend_name=f"{y_col} ({agg})",
             highlight=True,
         ).add_to(m)

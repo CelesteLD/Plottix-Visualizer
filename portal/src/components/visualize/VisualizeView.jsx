@@ -28,6 +28,9 @@ export default function VisualizeView() {
   const [modalError,    setModalError]    = useState(null)
   const [globalError,   setGlobalError]   = useState(null)
   const [showInfo,      setShowInfo]      = useState(false)
+  const [datasetDesc,   setDatasetDesc]   = useState(null)
+  const [descLoading,   setDescLoading]   = useState(false)
+  const [pdfLoading,    setPdfLoading]    = useState(false)
   const [dragging,      setDragging]      = useState(false)
   const [filename,      setFilename]      = useState(null)
 
@@ -49,6 +52,57 @@ export default function VisualizeView() {
   useEffect(() => { plottixGetChartTypes().then(setChartTypes).catch(() => {}) }, [])
   useEffect(() => { plottixGetMLModels().then(setAvailableModels).catch(() => {}) }, [])
 
+  const PLOTTIX_URL = process.env.REACT_APP_PLOTTIX_URL || 'http://localhost:5002'
+
+  async function handleExportPdf() {
+    if (!charts.length || pdfLoading) return
+    setPdfLoading(true)
+    try {
+      const pngCharts = charts.filter(c => !c.is_interactive)
+      const payload = {
+        filename:    filename || 'dataset',
+        description: datasetDesc || '',
+        charts: pngCharts.map(c => ({
+          job_id:    c.job_id,
+          title:     c.title,
+          narrative: c.narrative || '',
+        })),
+      }
+      const res = await fetch(`${PLOTTIX_URL}/api/export-pdf`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Error generando PDF')
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `${(filename || 'report').replace(/\.[^.]+$/, '')}_report.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
+
+  async function fetchDatasetDescription(sessionId) {
+    setDescLoading(true)
+    try {
+      const res  = await fetch(`${PLOTTIX_URL}/api/llm/describe`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ session_id: sessionId }),
+      })
+      const data = await res.json()
+      if (data.description) setDatasetDesc(data.description)
+    } catch (_) {}
+    finally { setDescLoading(false) }
+  }
+
   async function handleUpload(file) {
     if (!file) return
     setGlobalError(null); setSession(null); setCharts([])
@@ -58,6 +112,8 @@ export default function VisualizeView() {
     try {
       const info = await plottixUpload(file)
       setSession(info); setStep(STEP.MISSING)
+      setDatasetDesc(null)
+      fetchDatasetDescription(info.session_id)
     } catch (e) { setGlobalError(e.message) }
     finally { setUploadLoading(false) }
   }
@@ -91,6 +147,9 @@ export default function VisualizeView() {
       setCharts(prev => [...prev, {
         id: Date.now(), job_id: result.job_id, title: result.title,
         is_interactive: result.is_interactive,
+        chart_type: config.chart_type,
+        x_column:   config.x_column   || null,
+        y_column:   config.y_column   || null,
         img_url:  result.is_interactive ? null : plottixResultUrl(result.job_id),
         html_url: result.is_interactive ? plottixResultHtmlUrl(result.job_id) : null,
       }])
@@ -185,6 +244,16 @@ export default function VisualizeView() {
                 </div>
               </div>
 
+              {(datasetDesc || descLoading) && (
+                <div className="vz-llm-card">
+                  <div className="vz-llm-label"><span className="vz-llm-spark">✦</span> Descripción IA</div>
+                  {descLoading
+                    ? <div className="vz-llm-loading"><div className="vz-llm-spinner" /><span>Analizando dataset…</span></div>
+                    : <p className="vz-llm-text">{datasetDesc}</p>
+                  }
+                </div>
+              )}
+
               <button className="vz-info-toggle" onClick={() => setShowInfo(v => !v)}>
                 {showInfo ? '▾ Ocultar columnas' : '▸ Ver columnas'}
               </button>
@@ -262,14 +331,20 @@ export default function VisualizeView() {
               </button>
             </div>
             {activeTab === TAB.CHARTS && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                 <button className="btn-ghost" onClick={() => setShowInfo(v => !v)}>
                   {showInfo ? 'Ocultar cols' : 'Ver cols'}
                 </button>
-                <button className="register-btn" style={{ width: 'auto', padding: '7px 16px' }}
-                  onClick={() => { setModalError(null); setModalOpen(true) }}>
-                  + Añadir gráfico
-                </button>
+                {charts.filter(c => !c.is_interactive).length > 0 && (
+                  <button
+                    className="btn-ghost"
+                    onClick={handleExportPdf}
+                    disabled={pdfLoading}
+                    style={{ opacity: pdfLoading ? 0.5 : 1, borderColor: 'var(--border2)', color: 'var(--accent2)' }}
+                  >
+                    {pdfLoading ? '⏳ Generando…' : '↓ Exportar PDF'}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -285,17 +360,19 @@ export default function VisualizeView() {
                 <p>Sube un dataset CSV o Excel para explorar patrones.</p>
               </div>
             )}
-            {step === STEP.READY && charts.length === 0 && (
-              <div className="vz-empty">
-                <div className="vz-empty-logo">◈</div>
-                <p>Pulsa «+ Añadir gráfico» para comenzar.</p>
-              </div>
-            )}
-            {step === STEP.READY && charts.length > 0 && (
-              <div className={`vz-grid layout-${Math.min(charts.length, 2)}`}>
+            {step === STEP.READY && (
+              <div className={`vz-grid layout-${Math.min(charts.length + 1, 2)}`}>
                 {charts.map(chart => (
-                  <ChartCard key={chart.id} chart={chart} onRemove={() => removeChart(chart.id)} />
+                  <ChartCard key={chart.id} chart={chart} onRemove={() => removeChart(chart.id)} onNarrative={nar => setCharts(prev => prev.map(c => c.id === chart.id ? {...c, narrative: nar} : c))} />
                 ))}
+                <div
+                  className="vz-add-card"
+                  onClick={() => { setModalError(null); setModalOpen(true) }}
+                  title="Añadir gráfico"
+                >
+                  <span className="vz-add-icon">+</span>
+                  <span className="vz-add-label">Añadir gráfico</span>
+                </div>
               </div>
             )}
           </div>
@@ -370,6 +447,8 @@ export default function VisualizeView() {
                 config={mlConfig}
                 selectedModels={selectedModels}
                 onReset={handleMLReset}
+                filename={filename}
+                elbowData={elbowData}
               />
             )}
           </div>
@@ -430,6 +509,14 @@ export default function VisualizeView() {
         .cat-dot { background:var(--accent2); }
 
         /* Missing box */
+        /* LLM description card */
+        .vz-llm-card { background: linear-gradient(135deg, var(--p3), var(--p4)); border: 1px solid var(--border2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+        .vz-llm-label { font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #2A5A1A; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        .vz-llm-spark { color: var(--p1); font-size: 11px; }
+        .vz-llm-text { font-size: 11px; color: #2E5A1A; line-height: 1.6; }
+        .vz-llm-loading { display: flex; align-items: center; gap: 7px; font-size: 11px; font-family: var(--font-mono); color: #3A6A2A; }
+        .vz-llm-spinner { width: 12px; height: 12px; border: 1.5px solid var(--border2); border-top-color: var(--p1); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+
         .vz-missing-box { background:#FFFBEB; border:0.5px solid #FCD34D; border-radius:9px; padding:10px 12px; display:flex; flex-direction:column; gap:5px; }
         .vz-missing-header { display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#92400E; }
         .vz-missing-total { font-weight:600; }
@@ -457,6 +544,10 @@ export default function VisualizeView() {
         .vz-empty h2 { font-size:18px; font-weight:600; color:var(--text); letter-spacing:-0.3px; }
         .vz-empty p { font-size:13px; color:var(--text-muted); font-family:var(--font-mono); max-width:280px; line-height:1.6; }
         .vz-grid { display:grid; gap:14px; align-items:start; }
+        .vz-add-card { border:1.5px dashed var(--border2); border-radius:12px; min-height:220px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:var(--text-dim); transition:all 0.15s; background:var(--surface2); }
+        .vz-add-card:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+        .vz-add-icon { font-size:28px; line-height:1; }
+        .vz-add-label { font-size:12px; font-family:var(--font-mono); }
         .vz-grid.layout-1 { grid-template-columns:1fr; }
         .vz-grid.layout-2 { grid-template-columns:repeat(2,1fr); }
 
